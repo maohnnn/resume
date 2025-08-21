@@ -12,17 +12,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Use Node.js 20 + cache
+      - name: Use Node.js 22
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: 'npm'
+          node-version: 22
 
       - name: Install deps (npm ci)
-        run: npm ci
+        run: yarn ci
 
       - name: Build (Vite)
         env:
           NODE_ENV: production
           CI: true
-        run: npm run build  # ผลลัพธ์ที่ dist/
+        run: yarn run build  # ผลลัพธ์ที่ dist/
