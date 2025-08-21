@@ -17,7 +17,7 @@ jobs:
         with:
           node-version: 22
 
-      - name: Install deps (yarn ci)
+      - name: Install deps (yarn)
         run: yarn
 
       - name: Build (Vite)
