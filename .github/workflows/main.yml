@@ -15,7 +15,7 @@ env:
 
 jobs:
   compose-push:
-    runs-on: [self-hosted, linux, x64, docker]
+    runs-on: self-hosted
 
     steps:
       - uses: actions/checkout@v4
