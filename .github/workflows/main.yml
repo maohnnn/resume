@@ -35,32 +35,25 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/maohnnn/resume
+          bake-target: app
+          tags: |
+            type=ref,event=branch
+            type=ref,event=tag
+            type=sha
+            type=raw,value=latest,enable={{is_default_branch}}
 
-      # คำนวณ TAGS ที่จะใช้ (latest บน main, หรือ vX.Y.Z ตอน tag, และ sha-xxxx เสมอ)
-      - name: Compute tags
-        run: |
-          TAGS="sha-${GITHUB_SHA::7}"
-          if [ "${{ github.ref_type }}" = "branch" ] && [ "${{ github.ref_name }}" = "${{ github.event.repository.default_branch }}" ]; then
-            TAGS="latest,$TAGS"
-          fi
-          if [ "${{ github.ref_type }}" = "tag" ]; then
-            TAGS="${GITHUB_REF_NAME},$TAGS"
-          fi
-          echo "TAGS=$TAGS" >> $GITHUB_ENV
-
-      # Build & Push ทุก service จาก docker-compose.yml
-      - name: Compose build & push
+      - name: Compose build & push (bake)
         uses: docker/bake-action@v5
         with:
           files: |
             docker-compose.yml
+            ${{ steps.meta.outputs.bake-file }}
           set: |
-            *.platform=linux/amd64
-            # เติมหลายแท็กให้ทุก target (ทุก service)
-            *.tags=${{ env.TAGS }}
-            *.cache-from=type=gha
-            *.cache-to=type=gha,mode=max
+            app.platform=linux/amd64
           push: true
-        env:
-          REGISTRY: ${{ env.REGISTRY }}
-          OWNER: ${{ env.OWNER }}
