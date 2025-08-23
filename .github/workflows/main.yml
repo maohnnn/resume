@@ -35,19 +35,18 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      # คำนวณ TAGS ที่จะใช้ (latest บน main, หรือ vX.Y.Z ตอน tag, และ sha-xxxx เสมอ)
-      - name: Compute tags
-        run: |
-          TAGS="sha-${GITHUB_SHA::7}"
-          if [ "${{ github.ref_type }}" = "branch" ] && [ "${{ github.ref_name }}" = "${{ github.event.repository.default_branch }}" ]; then
-            TAGS="latest,$TAGS"
-          fi
-          if [ "${{ github.ref_type }}" = "tag" ]; then
-            TAGS="${GITHUB_REF_NAME},$TAGS"
-          fi
-          echo "TAGS=$TAGS" >> $GITHUB_ENV
-
+          
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/maohnnn/resume
+          tags: |
+            type=ref,event=branch
+            type=ref,event=tag
+            type=sha
+            type=raw,value=latest,enable={{is_default_branch}}
+            
       # Build & Push ทุก service จาก docker-compose.yml
       - name: Compose build & push
         uses: docker/bake-action@v5
@@ -56,10 +55,7 @@ jobs:
             docker-compose.yml
           set: |
             *.platform=linux/amd64
-            *.tags=${{ env.TAGS }}
+            *.tags=${{ steps.meta.outputs.tags }}   # <<== สำคัญ: ไม่ใช้คอมมา
             *.cache-from=type=gha
             *.cache-to=type=gha,mode=max
           push: true
-        env:
-          REGISTRY: ${{ env.REGISTRY }}
-          OWNER: ${{ env.OWNER }}
