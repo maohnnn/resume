@@ -48,6 +48,13 @@ jobs:
             type=sha
             type=raw,value=latest,enable={{is_default_branch}}
 
+      - name: Debug context
+        run: |
+          echo "---- .dockerignore ----"
+          [ -f .dockerignore ] && cat .dockerignore || echo "(no .dockerignore)"
+          echo "---- check files ----"
+          ls -la
+          [ -f go.mod ] && echo "found go.mod" || echo "MISSING go.mod"
       - name: Compose build & push (bake)
         uses: docker/bake-action@v5
         with:
