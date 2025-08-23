@@ -3,7 +3,7 @@ name: CI (Vite) on Self-Hosted
 on:
   push:
     branches: [ main ]
-    
+
 permissions:
   contents: read
   packages: write                # สำคัญ: ต้องมีสิทธิ์เขียนแพ็กเกจเพื่อ push ไป GHCR
