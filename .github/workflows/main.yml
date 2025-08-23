@@ -46,16 +46,12 @@ jobs:
             type=ref,event=tag
             type=sha
             type=raw,value=latest,enable={{is_default_branch}}
-            
-      # Build & Push ทุก service จาก docker-compose.yml
-      - name: Compose build & push
+      
+      - name: Compose build & push (bake)
         uses: docker/bake-action@v5
         with:
-          files: |
-            docker-compose.yml
+          files: docker-compose.yml
           set: |
-            *.platform=linux/amd64
-            *.tags=${{ steps.meta.outputs.tags }}   # <<== สำคัญ: ไม่ใช้คอมมา
-            *.cache-from=type=gha
-            *.cache-to=type=gha,mode=max
+            app.platform=linux/amd64
+            $(printf '%s\n' "${{ steps.meta.outputs.tags }}" | sed 's/^/app.tags=/')
           push: true
