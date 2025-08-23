@@ -41,17 +41,19 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ghcr.io/maohnnn/resume
+          bake-target: app
           tags: |
             type=ref,event=branch
             type=ref,event=tag
             type=sha
             type=raw,value=latest,enable={{is_default_branch}}
-      
+
       - name: Compose build & push (bake)
         uses: docker/bake-action@v5
         with:
-          files: docker-compose.yml
+          files: |
+            docker-compose.yml
+            ${{ steps.meta.outputs.bake-file }}
           set: |
             app.platform=linux/amd64
-            $(printf '%s\n' "${{ steps.meta.outputs.tags }}" | sed 's/^/app.tags=/')
           push: true
