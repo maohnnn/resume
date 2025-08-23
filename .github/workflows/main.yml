@@ -56,7 +56,6 @@ jobs:
             docker-compose.yml
           set: |
             *.platform=linux/amd64
-            # เติมหลายแท็กให้ทุก target (ทุก service)
             *.tags=${{ env.TAGS }}
             *.cache-from=type=gha
             *.cache-to=type=gha,mode=max
