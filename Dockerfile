@@ -1,7 +1,7 @@
 # Stage 1: Build React (Vite/CRA อะไรก็ได้)
 FROM node:22-alpine AS frontend
 WORKDIR /app
-COPY package.json yarn.lock ./
+COPY package.json ./
 RUN yarn
 COPY . .
 # ถ้าโค้ด Go อยู่โฟลเดอร์เดียวกับ frontend ให้ย้ายส่วนที่ไม่เกี่ยวออก หรือ .dockerignore ให้เรียบร้อย
