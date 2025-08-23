@@ -10,7 +10,7 @@ permissions:
   
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ maohnnn/resume }}   # owner/repo (GHCR ต้องเป็นตัวพิมพ์เล็ก)
+  IMAGE_NAME: maohnnn/resume   # owner/repo (GHCR ต้องเป็นตัวพิมพ์เล็ก)
   
 jobs:
   build-and-restart:
