@@ -12,7 +12,7 @@ RUN yarn build
 # Stage 2: Build Go
 FROM golang:1.23.1-alpine AS gobuild
 WORKDIR /app
-COPY go.mod go.sum* ./
+COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
 # คัดลอก dist จาก stage แรกเข้า /app/dist เพื่อให้ embed เจอ
