@@ -5,7 +5,4 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: go-react-resume-app
-    ports:
-      - "8080:8080"
-    restart: unless-stopped
+    image: ${REGISTRY}/${OWNER}/resume-web
