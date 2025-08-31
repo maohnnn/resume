@@ -1,1 +1,84 @@
 @import "tailwindcss";
+
+:root{
+  --bg:#0a0b0d;
+  --panel:#0f1115;
+  --panel-2:#12161c;
+  --text:#e6edf3;
+  --muted:#9fb0c2;
+  --accent:#7fffd4;
+  --accent-2:#7cc8ff;
+  --border: rgba(255,255,255,0.06);
+}
+
+html, body, #root { height: 100%; }
+
+body{
+  margin:0;
+  background: radial-gradient(1200px 800px at 20% -10%, #0f1320 0%, transparent 60%),
+              radial-gradient(900px 700px at 100% 0%, #0b1216 0%, transparent 50%),
+              var(--bg);
+  color:var(--text);
+  font: 16px/1.6 "Atkinson Hyperlegible", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  letter-spacing: 0.01em;
+}
+
+.page{ position: relative; min-height:100vh; }
+.bg-canvas{ position: fixed; inset:0; z-index:0; display:block; }
+.content{ position: relative; z-index: 1; max-width: 1100px; margin:0 auto; padding:24px; }
+
+.glass{
+  background: linear-gradient(180deg, rgba(18,22,28,0.85), rgba(12,14,18,0.85));
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.03);
+  backdrop-filter: blur(10px);
+}
+
+.header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:16px 18px; margin-bottom:16px;
+}
+.header .title{ font-size:24px; font-weight:700; letter-spacing:0.3px; }
+.header .subtitle{ color:var(--muted); font-size:14px; }
+.header-nav{ display:flex; gap:14px; }
+.header-nav a{ color:var(--muted); text-decoration:none; font-size:14px; padding:6px 8px; border-radius:8px; }
+.header-nav a:hover{ color:var(--text); background: rgba(255,255,255,0.04); }
+
+.layout{ display:grid; grid-template-columns: 280px 1fr; gap:16px; }
+@media (max-width: 920px){ .layout{ grid-template-columns: 1fr; } }
+
+.sidebar{ padding:14px; height: fit-content; position: sticky; top:16px; }
+.sidebar-block + .sidebar-block{ margin-top:14px; }
+.block-title{ font-weight:700; font-size:13px; letter-spacing:0.08em; color:var(--accent); text-transform:uppercase; margin-bottom:8px; }
+.kv{ display:flex; justify-content:space-between; gap:10px; font-size:14px; color:var(--muted); }
+.kv a{ color:var(--text); text-decoration:none; }
+.kv a:hover{ text-decoration:underline; color:var(--accent-2); }
+.chips{ display:flex; flex-wrap:wrap; gap:8px; }
+
+.main{ display:flex; flex-direction:column; gap:16px; }
+.section-title{ font-size:16px; font-weight:800; letter-spacing:0.06em; text-transform:uppercase; color:var(--text); margin:0 0 10px; }
+.section-title::after{ content:""; display:block; width:48px; height:2px; background:linear-gradient(90deg, var(--accent), transparent); margin-top:6px; }
+
+.soft-card{ background: linear-gradient(180deg, rgba(19,23,29,0.9), rgba(12,15,19,0.9)); border:1px solid var(--border); border-radius:12px; padding:14px; }
+.row{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.role{ font-weight:600; }
+.period{ color:var(--muted); font-size:13px; }
+.company{ color:var(--muted); font-size:14px; margin-top:2px; }
+.bullets{ margin:8px 0 0 16px; padding:0; }
+.bullets li{ margin:6px 0; }
+.cards{ display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:12px; }
+@media (max-width: 920px){ .cards{ grid-template-columns: 1fr; } }
+.stacked{ display:flex; flex-direction:column; gap:12px; }
+
+.chip{ display:inline-flex; align-items:center; gap:6px; border:1px solid var(--border); background: #0e1319; color:var(--text); padding:6px 10px; border-radius:999px; font-size:13px; }
+.chip::before{ content:""; width:6px; height:6px; border-radius:999px; background: var(--accent); box-shadow: 0 0 12px rgba(127,255,212,0.6); }
+
+.muted{ color:var(--muted); }
+.mt-2{ margin-top:8px; }
+
+.contact{ display:flex; flex-wrap:wrap; gap:10px; }
+.cta{ display:inline-flex; align-items:center; justify-content:center; padding:10px 14px; border-radius:10px; background: linear-gradient(180deg,#18222c,#141a22); border:1px solid var(--border); color:var(--text); text-decoration:none; font-weight:600; }
+.cta:hover{ border-color: rgba(127,255,212,0.45); box-shadow: 0 0 0 3px rgba(127,255,212,0.12) inset; }
+
+.footer{ color:var(--muted); text-align:center; font-size:13px; margin:16px 0 6px; }

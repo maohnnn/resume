@@ -2,13 +2,12 @@ import React from "react";
 
 export const Prompt: React.FC = () => (
   <>
-    <span className="text-emerald-400 font-bold">metrix</span>
-    @
-    <span className="text-cyan-300 font-bold">resume</span>
-    :
-    <span className="text-fuchsia-300 font-bold">~</span>$
+    <span className="text-[var(--accent)] pixel-title">FS</span>
+    <span className="mx-1 text-[var(--muted)]">@</span>
+    <span className="text-[var(--accent-2)] pixel-title">RESUME</span>
+    <span className="mx-1 text-[var(--muted)]">:</span>
+    <span className="text-[var(--yellow)]">~</span>$
   </>
 );
 
 export default Prompt;
-

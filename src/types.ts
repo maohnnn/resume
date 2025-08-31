@@ -9,6 +9,9 @@ export type Profile = {
   phone: string;
   email: string;
   summary: string;
+  website?: string;
+  github?: string;
+  linkedin?: string;
 };
 
 // Legacy MQL alias for older browsers
@@ -16,4 +19,3 @@ export type MediaQueryListLegacy = MediaQueryList & {
   addListener?: (listener: (e: MediaQueryListEvent) => void) => void;
   removeListener?: (listener: (e: MediaQueryListEvent) => void) => void;
 };
-
