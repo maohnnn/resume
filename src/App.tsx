@@ -1,496 +1,350 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useRef, useState, useEffect, useCallback } from "react";
+import useParticles from "./hooks/useParticles";
+import useAnimeReveal from "./hooks/useAnimeReveal";
+import type { Profile } from "./types";
 
-// React + Tailwind Matrix Terminal Resume
-// - Keeps the Matrix background (with DPR-safe canvas)
-// - Interactive terminal-style content
-// - Export command (md/txt/html)
-// - Badges with hover
-// - Custom scrollbar + faster typing/caret animations via CSS
-
-// Types
-type CommandFn = (arg?: string) => React.ReactNode | null;
-type CommandMap = Record<string, CommandFn>;
-
-const MATRIX_FONT_SIZE = 16; // in CSS pixels
-const MATRIX_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".split("");
-
-const Prompt = () => (
-  <>
-    <span className="text-emerald-400 font-bold">metrix</span>
-    @
-    <span className="text-cyan-300 font-bold">resume</span>
-    :
-    <span className="text-fuchsia-300 font-bold">~</span>$
-  </>
-);
-
-function downloadFile(filename: string, content: string, mime: string) {
-  const blob = new Blob([content], { type: mime });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.style.display = "none";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-}
-
-function buildExports() {
-  const md = `# Metrix Resume\n\n**Full-Stack Developer** — Bangkok, TH\n\n## Summary\nเน้นคุณภาพโค้ด ประสิทธิภาพ และความเสถียรของระบบ\n\n## Skills\n- Frontend: Angular, Vue 3/Vite, React, TypeScript\n- Backend/DevOps: Node.js, NestJS, MongoDB, PostgreSQL, Docker, CI/CD, Cloud\n\n## Experience\n- Senior Full-Stack Developer — Siam IoT Co., Ltd. (2022–ปัจจุบัน)\n  - Module Federation ลด TTI ~40%\n  - NestJS + MongoDB พร้อม Logger/Tracing\n  - Design System + Storybook\n- Full-Stack Developer — MG Solutions (2019–2022)\n  - Dashboard real-time (MQTT/WebSocket)\n  - ย้าย Vue2 → Vue3 + Vite ลด build time ~60%\n\n## Projects\n- Learning Center — Angular · M3 · SSR\n- IoT Admin Panel — Vue 3 · Quasar · MQTT\n- Log Analytics Library — Node.js · NestJS · Decorator\n\n## Contact\n- โทร: 08x-xxx-xxxx\n- อีเมล: you@email.com`;
-
-  const txt = md
-    .replace(/^# .*$/m, "Metrix Resume")
-    .replace(/^## /gm, "\n** ")
-    .replace(/^\*\* (.*)$/gm, "$1 **");
-
-  const html = `<!doctype html><meta charset=\"utf-8\"><title>Metrix Resume</title><pre style=\"font:14px/1.6 ui-monospace,Menlo,Consolas,monospace;padding:16px;color:#e5e7eb;background:#0f0f0f\">${md
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")}</pre>`;
-
-  return { md, txt, html };
-}
-
-
-const stacks = {
-  core: [
-    ["TypeScript", "text-emerald-300"],
-    ["Angular", "text-cyan-200"],
-    ["Vue 3", "text-fuchsia-200"],
-    ["React", "text-amber-200"],
-  ] as [string, string][],
-  backend: [
-    ["Node.js", "text-emerald-300"],
-    ["NestJS", "text-cyan-200"],
-    ["MongoDB", "text-fuchsia-200"],
-    ["PostgreSQL", "text-amber-200"],
-    ["Docker", "text-emerald-300"],
-    ["CI/CD", "text-cyan-200"],
-    ["Cloud", "text-fuchsia-200"],
-  ] as [string, string][],
+const DEFAULT_PROFILE: Profile = {
+  name: "Tanadol Moungmontree",
+  title: "Full-Stack Developer",
+  location: "Bangkok, TH",
+  phone: "+66-63-412-3699",
+  email: "tanadol.mo@gmail.com",
+  summary: "Full‑stack developer focused on TypeScript, Angular, Nestjs, and Node.js—shipping fast, reliable products with clean architecture and measurable impact. Recently improved performance (−40% TTI), rolled out a reusable design system, and added observability across services. Pragmatic and product‑minded; I own features from idea to production with testing, CI/CD, and measurable outcomes.",
+  // website: "https://your.site",
+  github: "https://github.com/maohnnn",
+  linkedin: "www.linkedin.com/in/tanadol-moungmontree-7020b0274",
 };
 
-// ===== Matrix hook (with DPR fix & stronger layering) =====
-const useMatrix = (canvasRef: React.RefObject<HTMLCanvasElement>) => {
+const skills = {
+  frontend: ["TypeScript", "Angular", "Vue", "TailwindCSS"],
+  backend: ["Node.js", "NestJS", "Express", "MongoDB"],
+  devops: ["Docker", "CI/CD", "GitHub Actions", "k8s (basic)"],
+};
+
+const coreSkill = ["Angular", "NestJS", "Node.js", "TypeScript"]
+
+const experience = [
+  {
+    role: "Senior Full‑Stack Developer",
+    company: "Siam IoT Co., Ltd.",
+    period: "2022 – Present",
+    bullets: [
+      "Cut TTI ~40% via Module Federation + bundle analysis",
+      "Designed and rolled out Design System + Storybook across 4 apps",
+      "Built NestJS services with telemetry (logging/trace) and proper observability",
+    ],
+  },
+  {
+    role: "Full‑Stack Developer",
+    company: "MG Solutions",
+    period: "2019 – 2022",
+    bullets: [
+      "Real‑time dashboards (MQTT/WebSocket) with role‑based access",
+      "Migrated Vue 2 → Vue 3 + Vite, reduced build time ~60%",
+    ],
+  },
+];
+
+const projects = [
+  {
+    name: "Learning Center",
+    stack: ["Angular", "SSR", "M3"],
+    desc: "SEO‑friendly learning platform with server‑side rendering and modular architecture.",
+  },
+  {
+    name: "IoT Admin Panel",
+    stack: ["Vue 3", "Quasar", "MQTT"],
+    desc: "Real‑time device ops console with granular RBAC and live telemetry.",
+  },
+  {
+    name: "Log Analytics Library",
+    stack: ["Node.js", "NestJS"],
+    desc: "Decorators + interceptors for low‑friction app logging and tracing.",
+  },
+];
+
+const education = [
+  { degree: "B.Sc. in Computer Science", org: "Your University", years: "2015 – 2019" },
+];
+
+const certs = [
+  { name: "AWS Certified Cloud Practitioner", year: "YYYY" },
+];
+
+const HeaderBar: React.FC<{ profile: Profile; activeId: string; onNavReady?: (el: HTMLElement | null) => void }>=({ profile, activeId, onNavReady })=> {
+  const navRef = useRef<HTMLElement | null>(null);
+  const underlineRef = useRef<HTMLSpanElement | null>(null);
+
+  // Motion override state
+  const [motionOk, setMotionOk] = useState<boolean>(() => {
+    try {
+      const v = localStorage.getItem('motion-ok');
+      return v === null ? true : v === '1';
+    } catch { return true; }
+  });
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    let cssW = 0, cssH = 0;
-
-    const resize = () => {
-      const dpr = Math.max(1, window.devicePixelRatio || 1);
-      cssW = window.innerWidth; cssH = window.innerHeight;
-      canvas.width = Math.floor(cssW * dpr);
-      canvas.height = Math.floor(cssH * dpr);
-      canvas.style.width = cssW + "px";
-      canvas.style.height = cssH + "px";
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    };
-
-    resize();
-
-    const baseSpeed = 0.9; // ความเร็วพื้นฐาน (คูณกับ dt)
-    let drops: number[] = [];
-
-    const resetDrops = () => {
-      const columns = Math.floor(cssW / MATRIX_FONT_SIZE);
-      drops = new Array(columns).fill(0).map(() => Math.random() * -50);
-    };
-    resetDrops();
-
-    let raf = 0;
-    let last = performance.now();
-
-    const draw = (now: number) => {
-      const dt = Math.min(32, now - last) / 16.67; // normalize เป็นหน่วยเฟรม ~60fps
-      last = now;
-
-      ctx.globalCompositeOperation = "source-over";
-      ctx.fillStyle = "rgba(0,0,0,0.10)";
-      ctx.fillRect(0, 0, cssW, cssH);
-      ctx.font = `${MATRIX_FONT_SIZE}px ui-monospace,Menlo,Consolas,monospace`;
-      ctx.textBaseline = "top";
-      ctx.fillStyle = "rgba(16,185,129,0.95)";
-
-      for (let i = 0; i < drops.length; i++) {
-        const text = MATRIX_CHARS[(Math.random() * MATRIX_CHARS.length) | 0];
-        const x = i * MATRIX_FONT_SIZE;
-        const y = drops[i] * MATRIX_FONT_SIZE;
-        ctx.fillText(text, x, y);
-        if (y > cssH && Math.random() > 0.975) drops[i] = 0;
-        drops[i] += baseSpeed * dt;
-      }
-
-      raf = requestAnimationFrame(draw);
-    };
-
-    const onResize = () => { resize(); resetDrops(); };
-    window.addEventListener("resize", onResize);
-    raf = requestAnimationFrame(draw);
-
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener("resize", onResize);
-    };
-  }, [canvasRef]);
-};
-
-// ===== Self tests =====
-const useSelfTests = (
-  commands: CommandMap | null,
-  chars: string[],
-  speedInit: number
-) => {
-  useEffect(() => {
-    if (!commands) return;
-    const id = setTimeout(() => {
-      const results: { name: string; pass: boolean }[] = [];
-      const assert = (name: string, cond: unknown) => results.push({ name, pass: !!cond });
-
-      // Presence checks
-      assert("COMMANDS.help exists", typeof commands.help === "function");
-      assert("COMMANDS.skills exists", typeof commands.skills === "function");
-      assert("COMMANDS.experience exists", typeof commands.experience === "function");
-      assert("COMMANDS.clear exists", typeof commands.clear === "function");
-      assert("COMMANDS.export exists", typeof (commands as any)["export"] === "function");
-
-      // Matrix config
-      assert("matrix chars are English alnum", chars.every((c) => /[A-Z0-9]/.test(c)));
-      assert("matrix speed starts slower", speedInit <= 1.0);
-
-      // Help contains export — help returns string
-      const helpVal = commands.help?.();
-      assert("help returns string", typeof helpVal === "string");
-      const helpText = typeof helpVal === "string" ? helpVal : "";
-      assert("help lists export", /export/.test(helpText));
-
-      // Export unsupported must return a React node (error pill), not string
-      const expFn = (commands as any)["export"] as CommandFn | undefined;
-      const out = expFn ? expFn("pdf") : null;
-      assert("export pdf returns ReactNode", typeof out !== "string" && out !== null);
-
-      // Report
-      const failed = results.filter((r) => !r.pass);
-      if (failed.length) {
-        // eslint-disable-next-line no-console
-        console.error("[Self-tests] Failed:", failed);
-      } else {
-        // eslint-disable-next-line no-console
-        console.log("[Self-tests] All passed:", results.length);
-      }
-    }, 0);
-
-    return () => clearTimeout(id);
-  }, [commands, chars, speedInit]);
-};
-
-const TerminalOutput: React.FC<{ children: React.ReactNode }>=({ children })=> (
-  <div className="ml-6 block rounded-md bg-emerald-400/10 px-3 py-1.5 text-slate-200">
-    {children}
-  </div>
-);
-
-const MetrixResumeTerminal: React.FC = () => {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  // @ts-ignore
-  useMatrix(canvasRef);
-
-  const [lines, setLines] = useState<React.ReactNode[]>([]);
-  const [buffer, setBuffer] = useState("");
-  const screenRef = useRef<HTMLDivElement | null>(null);
-
-  const scrollToBottom = () => {
-    const el = screenRef.current;
-    if (!el) return;
-    el.scrollTop = el.scrollHeight;
-  };
-
-  useEffect(() => { scrollToBottom(); }, [lines]);
-
-  const writeLine = (node: React.ReactNode) => setLines((prev) => [...prev, node]);
-
-  const typeText = async (text: string, delay = 8) => {
-    // simple typing effect for plain text only
-    return new Promise<void>((resolve) => {
-      let out = "";
-      const idx = lines.length;
-      setLines((prev) => [...prev, out]);
-      const tick = () => {
-        if (out.length < text.length) {
-          out += text[out.length];
-          setLines((prev) => {
-            const clone: any = [...prev];
-            clone[idx] = out;
-            return clone;
-          });
-          setTimeout(tick, delay);
-        } else {
-          // wrap final line in styled output
-          setLines((prev) => {
-            const clone = [...prev];
-            clone[idx] = <TerminalOutput>{text}</TerminalOutput>;
-            return clone;
-          });
-          resolve();
-        }
-      };
-      setTimeout(tick, delay);
-    });
-  };
-
-  const badgeGroup = (items: [string, string][], title?: string) => (
-    <div className="ml-6 mt-1 rounded-lg bg-emerald-400/10 p-2">
-      {title && (
-        <div className="mb-1 text-[12px] font-bold tracking-wide text-slate-300">
-          {title}
-        </div>
-      )}
-      <div className="flex flex-wrap gap-1.5">
-        {items.map(([label, color]) => (
-          <span
-            key={label}
-            className={[
-              "inline-flex min-h-6 select-none items-center gap-2 rounded-full border px-3 py-1 text-[12px] leading-none backdrop-saturate-125 transition-transform duration-150 ease-out",
-              "border-white/10 bg-white/5 hover:-translate-y-px hover:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)] hover:bg-white/10",
-              color,
-            ].join(" ")}
-          >
-            <span className="inline-block h-1.5 w-1.5 rounded-full bg-current shadow-[0_0_10px_currentColor]" />
-            {label}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-
-  // help returns plain text for testing convenience
-  const buildHelp = () => (
-    [
-      "Available commands:",
-      "  whoami — เกี่ยวกับฉัน",
-      "  skills — ทักษะหลัก",
-      "  experience — ประสบการณ์ทำงาน",
-      "  projects — ผลงานเด่น",
-      "  contact — ช่องทางติดต่อ",
-      "  export [md|txt|html] — ส่งออกไฟล์เรซูเม่ (ดีฟอลต์ md)",
-      "  clear — ล้างหน้าจอ",
-    ].join("\n")
-  );
-
-  const commands: CommandMap = useMemo(() => ({
-    help: () => buildHelp(),
-    whoami: () => (
-      <>
-        <TerminalOutput>
-          <strong>Full‑Stack Developer</strong> · Bangkok, TH
-          <br />เน้นคุณภาพโค้ด ประสิทธิภาพ และความเสถียรของระบบ
-        </TerminalOutput>
-        {badgeGroup(stacks.core, "Stack หลัก")}
-        {badgeGroup(stacks.backend, "Backend/DevOps")}
-      </>
-    ),
-    skills: () => (
-      <>
-        <TerminalOutput>
-          <strong>Frontend</strong>
-          <br />- Angular (90%)
-          <br />- Vue 3 / Vite (85%)
-          <br />- React (75%)
-          <br />- TypeScript (90%)
-        </TerminalOutput>
-        {badgeGroup(stacks.core, "Frameworks & Toolkit")}
-        <TerminalOutput>
-          <strong>Backend/DevOps</strong>
-          <br />- Node.js (85%)
-          <br />- NestJS (80%)
-          <br />- MongoDB (75%), PostgreSQL (70%)
-          <br />- Docker · CI/CD · Cloud (65–75%)
-        </TerminalOutput>
-        {badgeGroup(stacks.backend, "Backend / DevOps Tools")}
-      </>
-    ),
-    experience: () => (
-      <TerminalOutput>
-        <strong>Senior Full‑Stack Developer</strong> — Siam IoT Co., Ltd. (2022–ปัจจุบัน)
-        <br />• Module Federation ลด TTI ~40%
-        <br />• NestJS + MongoDB พร้อม Logger/Tracing
-        <br />• Design System + Storybook
-        <br />
-        <strong>Full‑Stack Developer</strong> — MG Solutions (2019–2022)
-        <br />• Dashboard real‑time (MQTT/WebSocket)
-        <br />• ย้าย Vue2 → Vue3 + Vite ลด build time ~60%
-      </TerminalOutput>
-    ),
-    projects: () => (
-      <TerminalOutput>
-        <strong>Learning Center</strong> — Angular · M3 · SSR
-        <br />• ศูนย์การเรียนรู้ออนไลน์ รองรับ SEO + SSR
-        <br />
-        <strong>IoT Admin Panel</strong> — Vue 3 · Quasar · MQTT
-        <br />• คอนโซลบริหารอุปกรณ์ real‑time + RBAC
-        <br />
-        <strong>Log Analytics Library</strong> — Node.js · NestJS · Decorator
-        <br />• Interceptor + Decorator สำหรับ Log/Trace อัตโนมัติ
-      </TerminalOutput>
-    ),
-    contact: () => (
-      <TerminalOutput>
-        <strong>โทร</strong> 08x‑xxx‑xxxx
-        <br />
-        <strong>อีเมล</strong> you@email.com
-        <br />
-        <strong>ที่อยู่</strong> Bangkok, Thailand
-      </TerminalOutput>
-    ),
-    export: (arg?: string) => {
-      const format = (arg || "md").toLowerCase();
-      const { md, txt, html } = buildExports();
-      let name = `metrix-resume.${format}`;
-      let data = "";
-      let type = "text/plain;charset=utf-8";
-      if (format === "md") { data = md; type = "text/markdown;charset=utf-8"; }
-      else if (format === "txt") { data = txt; }
-      else if (format === "html") { data = html; type = "text/html;charset=utf-8"; }
-      else {
-        return (
-          <span className="rounded-md bg-red-400/10 px-2 py-1 font-semibold text-red-400">
-            export: unsupported format "{format}" (use md|txt|html)
-          </span>
-        );
-      }
-      downloadFile(name, data, type);
-      return (
-        <TerminalOutput>
-          Exported <strong>{name}</strong> ✓
-        </TerminalOutput>
-      );
-    },
-    clear: () => { setLines([]); return null; },
-  }), []);
-
-  // Delay self-tests until commands committed once
-  const [commandsReady, setCommandsReady] = useState<CommandMap | null>(null);
-  useEffect(() => { setCommandsReady(commands); }, [commands]);
-  useSelfTests(commandsReady, MATRIX_CHARS, 0.9);
-
-  const runCommand = async (raw?: string) => {
-    if (!raw) return;
-    const [cmd, arg] = raw.trim().split(/\s+/, 2);
-    writeLine(
-      <div className="flex items-start gap-2">
-        <span className="text-emerald-400">$</span>
-        <span className="font-semibold text-slate-100">{raw}</span>
-      </div>
-    );
-    await new Promise((r) => setTimeout(r, 60));
-
-    const action = commands[cmd as keyof typeof commands];
-    if (action) {
-      const out = action(arg);
-      if (typeof out === "string") await typeText(out, 4);
-      else if (out) writeLine(out);
-    } else {
-      writeLine(
-        <span className="rounded-md bg-red-400/10 px-2 py-1 font-semibold text-red-400">{cmd}: command not found</span>
-      );
+    const root = document.documentElement;
+    if (motionOk) root.classList.add('motion-ok'); else root.classList.remove('motion-ok');
+    try { localStorage.setItem('motion-ok', motionOk ? '1' : '0'); } catch { /* ignore */ }
+    if (motionOk) {
+      // Ask reveal system to reinitialize animations
+      window.dispatchEvent(new CustomEvent('reveal:reset'));
     }
-  };
+  }, [motionOk]);
 
-  // keyboard input
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
-      if (e.key === "Backspace") { setBuffer((b) => b.slice(0, -1)); e.preventDefault(); return; }
-      if (e.key === "Enter") { const cmd = buffer; setBuffer(""); runCommand(cmd); e.preventDefault(); return; }
-      if (e.key.length === 1) { setBuffer((b) => b + e.key); e.preventDefault(); }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [buffer]);
+  // expose nav element to parent if needed
+  useEffect(() => { onNavReady?.(navRef.current); }, [onNavReady]);
 
-  // initial demo
-  useEffect(() => {
-    const boot = async () => {
-      await typeText("Booting interactive resume ...", 6);
-      writeLine(<div />);
-      await runCommand("whoami");
-      writeLine(<div />);
-      await runCommand("skills");
-      writeLine(<div />);
-      await runCommand("experience");
-      writeLine(<div />);
-      await runCommand("projects");
-      writeLine(<TerminalOutput>พิมพ์ <strong>help</strong> เพื่อดูคำสั่ง หรือใช้ปุ่มลัดด้านล่าง — ใช้ <strong>export</strong> เพื่อดาวน์โหลดไฟล์</TerminalOutput>);
-    };
-    boot();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  const moveUnderline = useCallback(() => {
+    const nav = navRef.current; const bar = underlineRef.current;
+    if (!nav || !bar) return;
+    const active = nav.querySelector<HTMLAnchorElement>('a.nav-link.is-active');
+    if (!active) return;
+    const navRect = nav.getBoundingClientRect();
+    const aRect = active.getBoundingClientRect();
+    const x = aRect.left - navRect.left;
+    const w = aRect.width;
+    bar.style.transform = `translateX(${Math.max(0, x)}px)`;
+    bar.style.width = `${w}px`;
   }, []);
 
-  // @ts-ignore
-  // @ts-ignore
+  useEffect(() => { moveUnderline(); }, [activeId, moveUnderline]);
+  useEffect(() => {
+    const onResize = () => moveUnderline();
+    window.addEventListener("resize", onResize);
+    // ensure first layout
+    const id = requestAnimationFrame(moveUnderline);
+    return () => { window.removeEventListener("resize", onResize); cancelAnimationFrame(id); };
+  }, [moveUnderline]);
+
   return (
-    <div className="relative min-h-screen bg-[#0a0a0a] text-slate-100">
-      {/* Matrix canvas */}
-      <canvas
-         ref={canvasRef}
-         className="pointer-events-none fixed inset-0 z-0 opacity-70 mix-blend-screen"
-         aria-hidden
-      />
-      {/* Move glow behind canvas so matrix is always visible */}
-      <div className="fixed inset-x-0 top-0 -z-20 h-72 bg-gradient-to-b from-emerald-400/25 to-transparent" />
+    <header className="header glass reveal" data-anim="down">
+      <div className="header-main">
+        <div className="title reveal" data-anim="right" data-letters="hero">{profile.name}</div>
+        <div className="subtitle reveal" data-anim="right">{profile.title} · {profile.location}</div>
+      </div>
+      <nav className="header-nav nav-tabs" ref={navRef} data-stagger-group>
+        <a className={["reveal nav-link", activeId === "summary" ? "is-active" : ""].join(" ")} data-anim="down" href="#summary">Summary</a>
+        <a className={["reveal nav-link", activeId === "skills" ? "is-active" : ""].join(" ")} data-anim="down" href="#skills">Skills</a>
+        <a className={["reveal nav-link", activeId === "experience" ? "is-active" : ""].join(" ")} data-anim="down" href="#experience">Experience</a>
+        <a className={["reveal nav-link", activeId === "projects" ? "is-active" : ""].join(" ")} data-anim="down" href="#projects">Projects</a>
+        <a className={["reveal nav-link", activeId === "education" ? "is-active" : ""].join(" ")} data-anim="down" href="#education">Education</a>
+        <a className={["reveal nav-link", activeId === "contact" ? "is-active" : ""].join(" ")} data-anim="down" href="#contact">Contact</a>
+        <span className="nav-underline" ref={underlineRef} />
+      </nav>
+      <button type="button" className="chip reveal" data-anim="down" onClick={() => setMotionOk(v => !v)} title="Toggle animations">
+        Motion: {motionOk ? 'On' : 'Off'}
+      </button>
+    </header>
+  );
+};
 
-      {/* Global styles for caret + scrollbar */}
-      <style>{`
-        @keyframes caretBlink { 50% { opacity: 0 } }
-        .caret { display:inline-block; width:10px; height:1.2em; background: rgb(52,211,153); margin-left:4px; vertical-align:-.2em; animation: caretBlink .6s steps(1) infinite; }
-        .scrollArea::-webkit-scrollbar{ width:10px; height:10px }
-        .scrollArea::-webkit-scrollbar-track{ background: transparent }
-        .scrollArea::-webkit-scrollbar-thumb{ background: linear-gradient(180deg, rgba(52,211,153,.95), rgba(34,211,238,.8)); border-radius:999px; border:2px solid transparent; background-clip:content-box; box-shadow: inset 0 0 0 1px rgba(255,255,255,.06) }
-        .scrollArea:hover::-webkit-scrollbar-thumb{ background: linear-gradient(180deg, rgba(52,211,153,1), rgba(34,211,238,.95)) }
-      `}</style>
+const Sidebar: React.FC<{ profile: Profile; onReset?: () => void }>=({ profile, onReset })=> (
+  <aside className="sidebar glass reveal" data-anim="up">
+    <div className="sidebar-block">
+      <div className="block-title">Contact</div>
+      <div className="kv"><span>Phone</span><a href={`tel:${profile.phone}`}>{profile.phone}</a></div>
+      <div className="kv"><span>Email</span><a href={`mailto:${profile.email}`}>{profile.email}</a></div>
+      {profile.website && <div className="kv"><span>Website</span><a href={profile.website} target="_blank" rel="noreferrer noopener">{profile.website}</a></div>}
+      {profile.github && <div className="kv"><span>GitHub</span><a href={profile.github} target="_blank" rel="noreferrer noopener">{profile.github}</a></div>}
+      {profile.linkedin && <div className="kv"><span>LinkedIn</span><a href={profile.linkedin} target="_blank" rel="noreferrer noopener">{profile.linkedin}</a></div>}
 
-      <main className="relative z-10 mx-auto max-w-5xl p-6 sm:p-8 lg:p-10">
+    </div>
+    <div className="sidebar-block">
+      <div className="block-title">Core</div>
+      <div className="chips" data-stagger-group>
+        {coreSkill.map(s => <Chip key={s} label={s} />)}
+      </div>
+    </div>
+  </aside>
+);
 
-        <section className="relative rounded-2xl border border-[#1f1f22] bg-[#0f0f0f] shadow-[0_0_0_1px_rgba(255,255,255,0.02)] backdrop-blur-md">
-          {/* Header */}
-          <div className="flex items-center gap-3 rounded-t-2xl border-b border-[#1f1f22] px-5 py-3">
-            <div className="flex items-center gap-2">
-              <span className="h-3.5 w-3.5 rounded-full bg-red-500" />
-              <span className="h-3.5 w-3.5 rounded-full bg-amber-500" />
-              <span className="h-3.5 w-3.5 rounded-full bg-emerald-500" />
-            </div>
-            <div className="text-sm font-bold tracking-wide text-cyan-300">metrix@resume: ~</div>
-          </div>
+const Chip: React.FC<{ label: string }> = ({ label }) => (
+  <span className="chip reveal" data-anim="up">{label}</span>
+);
 
-          {/* Body */}
-          <div ref={screenRef} className="scrollArea h-[75vh] overflow-auto px-5 py-4 font-mono text-[15px] leading-7">
-            {lines.map((node, i) => (<div key={i} className="mb-1">{node}</div>))}
-            {/* Prompt line */}
-            <div className="mt-1 flex items-start gap-2">
-              <Prompt />&nbsp;<span>{buffer}</span><span className="caret" />
-            </div>
-          </div>
+const Section: React.FC<{ title: string; children: React.ReactNode; id?: string }>=({ title, children, id })=> (
+  <section className="glass section reveal" data-anim="up" id={id}>
+    <h2 className="section-title reveal" data-anim="down" data-letters>{title}</h2>
+    {children}
+  </section>
+);
 
-          {/* Toolbar */}
-          <div className="flex flex-wrap gap-2 rounded-b-2xl border-t border-[#1f1f22] px-5 py-3">
-            <button className="h-9 rounded-xl border border-white/10 bg-emerald-500/90 px-4 font-semibold text-[#0b0f0d] shadow-sm active:scale-95" onClick={() => (async () => { await typeText("Booting interactive resume ...", 6); await runCommand("whoami"); await runCommand("skills"); await runCommand("experience"); await runCommand("projects"); })()}>
-              Re-run demo
-            </button>
-            {[ ["help", "help"], ["skills", "skills"], ["projects", "projects"], ["contact", "contact"], ["export", "export md"] ].map(([label, cmd]) => (
-              <button key={label} className="h-9 rounded-xl border border-white/10 bg-[#1a1b1e] px-4 font-semibold text-slate-100 shadow-sm active:scale-95" onClick={() => runCommand(cmd)}>
-                {label}
-              </button>
-            ))}
-          </div>
-        </section>
-        <p className="mt-4 text-center text-xs text-slate-400">© {new Date().getFullYear()} ชื่อ‑นามสกุล · พร้อมเริ่มงานทันที · อัปเดตล่าสุดวันนี้</p>
-      </main>
+const App: React.FC = () => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  useParticles(canvasRef);
+
+  const [profile, setProfile] = useState<Profile>(() => {
+    try {
+      const raw = localStorage.getItem("resume-profile");
+      if (!raw) return DEFAULT_PROFILE;
+      const parsed = JSON.parse(raw);
+      const merged = { ...DEFAULT_PROFILE, ...parsed } as Profile;
+      // normalize blank/undefined summary
+      const s = (merged.summary || "").trim();
+      merged.summary = s ? merged.summary : DEFAULT_PROFILE.summary;
+      return merged;
+    } catch {
+      return DEFAULT_PROFILE;
+    }
+  });
+
+  const handleReset = useCallback(() => {
+    try { localStorage.removeItem("resume-profile"); } catch { /* ignore */ }
+    setProfile(DEFAULT_PROFILE);
+  }, []);
+
+  const pageRef = useRef<HTMLDivElement | null>(null);
+  useAnimeReveal(pageRef.current || undefined);
+
+  // active section tracking
+  const [activeId, setActiveId] = useState<string>("summary");
+  useEffect(() => {
+    const sections = Array.from(document.querySelectorAll<HTMLElement>("section.glass[id]"));
+    if (!sections.length) return;
+
+    let ticking = false;
+    const compute = () => {
+      ticking = false;
+      const scrollTop = window.scrollY || document.documentElement.scrollTop || 0;
+      const header = document.querySelector<HTMLElement>(".header");
+      const hb = header?.getBoundingClientRect();
+      // Use header bottom if visible, else a fixed anchor from top
+      const anchorFromViewportTop = hb && hb.bottom > 0 ? (hb.bottom + 8) : 72;
+      const anchorY = scrollTop + anchorFromViewportTop;
+
+      let currentId = sections[0].id;
+      for (let i = 0; i < sections.length; i++) {
+        const s = sections[i];
+        const topAbs = s.offsetTop; // absolute Y relative to document
+        if (topAbs <= anchorY) currentId = s.id; else break;
+      }
+      if (scrollTop <= 2) currentId = sections[0].id;
+      setActiveId((prev) => (prev === currentId ? prev : currentId));
+    };
+
+    const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(compute); } };
+    const onResize = onScroll;
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onResize);
+
+    // initial: force Summary as starting state; compute after first frame
+    setActiveId(sections[0].id);
+    const raf = requestAnimationFrame(compute);
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onResize);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+
+  return (
+    <div className="page" ref={pageRef}>
+      <canvas ref={canvasRef} className="bg-canvas" />
+      <div className="bg-glow" />
+      <div className="content">
+        <HeaderBar profile={profile} activeId={activeId} />
+        <div className="layout">
+          <Sidebar profile={profile} onReset={handleReset} />
+
+          <main className="main" data-stagger-group>
+            <Section title="Summary" id="summary">
+              <p className="muted reveal" data-anim="up" data-lines>{(profile.summary && profile.summary.trim()) ? profile.summary : DEFAULT_PROFILE.summary}</p>
+            </Section>
+
+            <Section title="Skills" id="skills">
+              <div className="skills-grid" data-stagger-group>
+                <div className="soft-card reveal" data-anim="up">
+                  <div className="block-title">Frontend</div>
+                  <div className="chips" data-stagger-group>{skills.frontend.map(s => <Chip key={s} label={s} />)}</div>
+                </div>
+                <div className="soft-card reveal" data-anim="up">
+                  <div className="block-title">Backend</div>
+                  <div className="chips" data-stagger-group>{skills.backend.map(s => <Chip key={s} label={s} />)}</div>
+                </div>
+                <div className="soft-card reveal" data-anim="up">
+                  <div className="block-title">DevOps</div>
+                  <div className="chips" data-stagger-group>{skills.devops.map(s => <Chip key={s} label={s} />)}</div>
+                </div>
+              </div>
+            </Section>
+
+            <Section title="Experience" id="experience">
+              <div className="stacked" data-stagger-group>
+                {experience.map((e) => (
+                  <div className="soft-card reveal" data-anim="up" key={e.role + e.company}>
+                    <div className="row">
+                      <div className="role">{e.role}</div>
+                      <div className="period">{e.period}</div>
+                    </div>
+                    <div className="company">{e.company}</div>
+                    <ul className="bullets">
+                      {e.bullets.map((b, i) => <li key={i}>{b}</li>)}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </Section>
+
+            <Section title="Projects" id="projects">
+              <div className="cards" data-stagger-group>
+                {projects.map((p) => (
+                  <div className="soft-card reveal" data-anim="up" key={p.name}>
+                    <div className="row">
+                      <div className="role">{p.name}</div>
+                    </div>
+                    <div className="muted" data-lines>{p.desc}</div>
+                    <div className="chips mt-2" data-stagger-group>{p.stack.map(s => <Chip key={s} label={s} />)}</div>
+                  </div>
+                ))}
+              </div>
+            </Section>
+
+            <Section title="Education" id="education">
+              <div className="stacked" data-stagger-group>
+                {education.map((ed) => (
+                  <div className="soft-card reveal" data-anim="up" key={ed.degree+ed.org}>
+                    <div className="row">
+                      <div className="role">{ed.degree}</div>
+                      <div className="period">{ed.years}</div>
+                    </div>
+                    <div className="company">{ed.org}</div>
+                  </div>
+                ))}
+              </div>
+            </Section>
+
+            <Section title="Certifications">
+              <div className="stacked" data-stagger-group>
+                {certs.map((c) => (
+                  <div className="soft-card reveal" data-anim="up" key={c.name}>
+                    <div className="row">
+                      <div className="role">{c.name}</div>
+                      <div className="period">{c.year}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Section>
+
+            <Section title="Contact" id="contact">
+              <div className="contact" data-stagger-group>
+                <a href={`mailto:${profile.email}`} className="cta reveal" data-anim="up">Email Me</a>
+                {profile.website && <a href={profile.website} className="cta reveal" data-anim="up" target="_blank" rel="noreferrer noopener">Website</a>}
+                {profile.github && <a href={profile.github} className="cta reveal" data-anim="up" target="_blank" rel="noreferrer noopener">GitHub</a>}
+                {profile.linkedin && <a href={profile.linkedin} className="cta reveal" data-anim="up" target="_blank" rel="noreferrer noopener">LinkedIn</a>}
+              </div>
+            </Section>
+          </main>
+        </div>
+
+        <footer className="footer reveal" data-anim="up">© {new Date().getFullYear()} {profile.name} · Built with React + Vite</footer>
+      </div>
     </div>
   );
 };
 
-export default MetrixResumeTerminal;
+export default App;
+

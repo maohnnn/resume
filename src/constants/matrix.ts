@@ -1,0 +1,3 @@
+export const MATRIX_FONT_SIZE = 16; // CSS pixels
+export const MATRIX_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".split("");
+
