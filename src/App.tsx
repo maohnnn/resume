@@ -139,7 +139,7 @@ const HeaderBar: React.FC<{ profile: Profile; activeId: string; onNavReady?: (el
   );
 };
 
-const Sidebar: React.FC<{ profile: Profile; onReset?: () => void }>=({ profile, onReset })=> (
+const Sidebar: React.FC<{ profile: Profile; onReset?: () => void }>=({ profile })=> (
   <aside className="sidebar glass reveal" data-anim="up">
     <div className="sidebar-block">
       <div className="block-title">Contact</div>
@@ -188,11 +188,6 @@ const App: React.FC = () => {
       return DEFAULT_PROFILE;
     }
   });
-
-  const handleReset = useCallback(() => {
-    try { localStorage.removeItem("resume-profile"); } catch { /* ignore */ }
-    setProfile(DEFAULT_PROFILE);
-  }, []);
 
   const pageRef = useRef<HTMLDivElement | null>(null);
   useAnimeReveal(pageRef.current || undefined);
@@ -247,7 +242,7 @@ const App: React.FC = () => {
       <div className="content">
         <HeaderBar profile={profile} activeId={activeId} />
         <div className="layout">
-          <Sidebar profile={profile} onReset={handleReset} />
+          <Sidebar profile={profile}/>
 
           <main className="main" data-stagger-group>
             <Section title="Summary" id="summary">
