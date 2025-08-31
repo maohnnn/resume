@@ -75,6 +75,9 @@ body{
 .header-nav .nav-link.is-active{ opacity:1; }
 .header-nav .nav-underline{ position:absolute; left:0; bottom:0; height:2px; width:0; background: linear-gradient(90deg, var(--accent), var(--accent-2)); border-radius:2px; transform: translateX(0); transition: transform 260ms ease, width 260ms ease; box-shadow: 0 0 12px rgba(127,255,212,0.35); }
 
+/* Ensure flex/grid children can shrink to avoid overflow */
+.header > *, .layout > * { min-width: 0; }
+
 .layout{ display:grid; grid-template-columns: 280px 1fr; gap:16px; }
 @media (max-width: 920px){ .layout{ grid-template-columns: 1fr; } }
 
@@ -84,6 +87,8 @@ body{
 .kv{ display:flex; justify-content:space-between; gap:10px; font-size:14px; color:var(--muted); }
 .kv a{ color:var(--text); text-decoration:none; }
 .kv a:hover{ text-decoration:underline; color:var(--accent-2); }
+/* Wrap long values (emails/URLs) on small screens to prevent horizontal scroll */
+.kv a, .kv span { overflow-wrap: anywhere; word-break: break-word; }
 .chips{ display:flex; flex-wrap:wrap; gap:10px; }
 
 .main{ display:flex; flex-direction:column; gap:18px; }
@@ -97,8 +102,10 @@ body{
 .role{ font-weight:600; }
 .period{ color:var(--muted); font-size:13px; }
 .company{ color:var(--muted); font-size:14px; margin-top:2px; }
-.bullets{ margin:8px 0 0 16px; padding:0; }
+.bullets{ margin:8px 0 0 16px; padding:0; list-style: disc; }
 .bullets li{ margin:6px 0; }
+/* clearer separation between bullets */
+.bullets li + li{ margin-top:10px; padding-top:8px; border-top:1px dashed rgba(255,255,255,0.12); }
 .cards{ display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:14px; }
 @media (max-width: 920px){ .cards{ grid-template-columns: 1fr; } }
 .stacked{ display:flex; flex-direction:column; gap:12px; }
@@ -142,4 +149,19 @@ body{
 @keyframes glow-bob{
   0% { --glow-y: 0px; }
   100% { --glow-y: 12px; }
+}
+
+/* Mobile optimizations */
+@media (max-width: 640px){
+  .header{ flex-direction: column; align-items: flex-start; gap: 10px; }
+  .header .title{ font-size:20px; }
+  .header .subtitle{ font-size:13px; }
+  .header-nav{ width:100%; overflow-x:auto; -webkit-overflow-scrolling: touch; white-space: nowrap; padding-bottom:10px; }
+  .header-nav a{ padding:6px 8px; font-size:13px; }
+  .header .chip{ align-self: flex-start; }
+}
+
+/* Disable sticky sidebar on narrow screens to avoid overlap and jank */
+@media (max-width: 920px){
+  .sidebar{ position: static; top: auto; }
 }

@@ -25,31 +25,32 @@ const coreSkill = ["Angular", "NestJS", "Node.js", "TypeScript"]
 
 const experience = [
   {
-    role: "Senior Full‑Stack Developer",
-    company: "Siam IoT Co., Ltd.",
-    period: "2022 – Present",
+    role: "Full‑Stack Developer",
+    company: "Cube SoftTech Co., Ltd. (Onsite at Advanced Info Service Public Company Limited)",
+    period: "2023 – Present",
     bullets: [
-      "Cut TTI ~40% via Module Federation + bundle analysis",
-      "Designed and rolled out Design System + Storybook across 4 apps",
-      "Built NestJS services with telemetry (logging/trace) and proper observability",
+      "IoT Management Web Application: Designed and implemented a user-friendly interface for managing IoT devices, enabling real-time monitoring and control.",
+      "Team Worklogs Web Application Integrated with Jira: Developed an internal tool to track team worklogs, seamlessly integrating with Jira to synchronize tasks and updates, while also summarizing individual timesheet data to provide detailed insights into each team member’s project contributions. This integration streamlined project tracking, resource allocation, and improved team productivity by optimizing the user interface for ease of use.",
+      "Sequence Flow Web Application: Created a platform to visualize and manage sequence flows, facilitating better understanding and optimization of complex processes.",
+      "Mobile Application for a Mobile Network Operator: Developed a mobile application for a telecommunications company, enhancing user experience and providing seamless access to services."
     ],
   },
   {
-    role: "Full‑Stack Developer",
-    company: "MG Solutions",
-    period: "2019 – 2022",
+    role: "Front-End Developer",
+    company: "Freelance",
+    period: "2022 – 2023",
     bullets: [
-      "Real‑time dashboards (MQTT/WebSocket) with role‑based access",
-      "Migrated Vue 2 → Vue 3 + Vite, reduced build time ~60%",
+      "Mental Healthcare Management System: Developed a comprehensive platform for mental healthcare professionals to manage patient cases, maintain treatment histories, and schedule appointments efficiently. Integrated the system with LINE Official Account (LINE OA) to enhance patient engagement and streamline communication. This integration allows patients to receive appointment reminders, and direct communication through LINE, improving accessibility and convenience for both patients and healthcare providers",
+      "Personal Data Protection Management System: Developed a web application to assist organizations in ensuring compliance with personal data protection regulations. The system facilitates the handling of personal data requests, maintains records of data processing activities, and manages cookie usage. It enables organizations to oversee the collection, processing, and storage of personal data while ensuring full compliance with legal requirements and protecting individual privacy.",
     ],
   },
 ];
 
 const projects = [
   {
-    name: "Learning Center",
-    stack: ["Angular", "SSR", "M3"],
-    desc: "SEO‑friendly learning platform with server‑side rendering and modular architecture.",
+    name: "IoT Management Web Application",
+    stack: ["Angular", "Typescript", "NestJS", "Node.js" ,"MongoDB"],
+    desc: "Designed and implemented a user-friendly interface for managing IoT devices, enabling real-time monitoring and control.",
   },
   {
     name: "IoT Admin Panel",
@@ -74,23 +75,6 @@ const certs = [
 const HeaderBar: React.FC<{ profile: Profile; activeId: string; onNavReady?: (el: HTMLElement | null) => void }>=({ profile, activeId, onNavReady })=> {
   const navRef = useRef<HTMLElement | null>(null);
   const underlineRef = useRef<HTMLSpanElement | null>(null);
-
-  // Motion override state
-  const [motionOk, setMotionOk] = useState<boolean>(() => {
-    try {
-      const v = localStorage.getItem('motion-ok');
-      return v === null ? true : v === '1';
-    } catch { return true; }
-  });
-  useEffect(() => {
-    const root = document.documentElement;
-    if (motionOk) root.classList.add('motion-ok'); else root.classList.remove('motion-ok');
-    try { localStorage.setItem('motion-ok', motionOk ? '1' : '0'); } catch { /* ignore */ }
-    if (motionOk) {
-      // Ask reveal system to reinitialize animations
-      window.dispatchEvent(new CustomEvent('reveal:reset'));
-    }
-  }, [motionOk]);
 
   // expose nav element to parent if needed
   useEffect(() => { onNavReady?.(navRef.current); }, [onNavReady]);
@@ -132,9 +116,6 @@ const HeaderBar: React.FC<{ profile: Profile; activeId: string; onNavReady?: (el
         <a className={["reveal nav-link", activeId === "contact" ? "is-active" : ""].join(" ")} data-anim="down" href="#contact">Contact</a>
         <span className="nav-underline" ref={underlineRef} />
       </nav>
-      <button type="button" className="chip reveal" data-anim="down" onClick={() => setMotionOk(v => !v)} title="Toggle animations">
-        Motion: {motionOk ? 'On' : 'Off'}
-      </button>
     </header>
   );
 };
@@ -276,7 +257,19 @@ const App: React.FC = () => {
                     </div>
                     <div className="company">{e.company}</div>
                     <ul className="bullets">
-                      {e.bullets.map((b, i) => <li key={i}>{b}</li>)}
+                      {e.bullets.map((b, i) => {
+                        const idx = b.indexOf(":");
+                        if (idx > 0) {
+                          const head = b.slice(0, idx + 1);
+                          const tail = b.slice(idx + 1);
+                          return (
+                            <li key={i}>
+                              <strong>{head}</strong>{tail}
+                            </li>
+                          );
+                        }
+                        return <li key={i}>{b}</li>;
+                      })}
                     </ul>
                   </div>
                 ))}
