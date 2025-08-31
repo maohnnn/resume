@@ -84,8 +84,11 @@ body{
 .sidebar{ padding:16px; height: fit-content; position: sticky; top:16px; }
 .sidebar-block + .sidebar-block{ margin-top:14px; }
 .block-title{ font-weight:700; font-size:13px; letter-spacing:0.08em; color:var(--accent); text-transform:uppercase; margin-bottom:8px; }
-.kv{ display:flex; justify-content:space-between; gap:10px; font-size:14px; color:var(--muted); }
-.kv a{ color:var(--text); text-decoration:none; }
+.kv{ display:grid; grid-template-columns:max-content 1fr; column-gap:10px; row-gap:4px; font-size:14px; color:var(--muted); align-items:start; }
+.kv > span:first-child{ white-space:nowrap; opacity:0.9; }
+/* Right-align the value column */
+.kv > *:nth-child(2){ text-align:right; }
+.kv a{ color:var(--text); text-decoration:none; overflow-wrap:anywhere; word-break:break-word; min-width:0; }
 .kv a:hover{ text-decoration:underline; color:var(--accent-2); }
 /* Wrap long values (emails/URLs) on small screens to prevent horizontal scroll */
 .kv a, .kv span { overflow-wrap: anywhere; word-break: break-word; }

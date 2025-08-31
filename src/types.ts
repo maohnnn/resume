@@ -14,6 +14,13 @@ export type Profile = {
   linkedin?: string;
 };
 
+export type Project = {
+  name: string;
+  stack: string[];
+  desc: string;
+  highlights?: string[];
+};
+
 // Legacy MQL alias for older browsers
 export type MediaQueryListLegacy = MediaQueryList & {
   addListener?: (listener: (e: MediaQueryListEvent) => void) => void;

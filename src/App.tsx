@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import useParticles from "./hooks/useParticles";
 import useAnimeReveal from "./hooks/useAnimeReveal";
-import type { Profile } from "./types";
+import type { Profile, Project } from "./types";
 
 const DEFAULT_PROFILE: Profile = {
   name: "Tanadol Moungmontree",
@@ -12,7 +12,7 @@ const DEFAULT_PROFILE: Profile = {
   summary: "Full‑stack developer focused on TypeScript, Angular, Nestjs, and Node.js—shipping fast, reliable products with clean architecture and measurable impact. Recently improved performance (−40% TTI), rolled out a reusable design system, and added observability across services. Pragmatic and product‑minded; I own features from idea to production with testing, CI/CD, and measurable outcomes.",
   // website: "https://your.site",
   github: "https://github.com/maohnnn",
-  linkedin: "www.linkedin.com/in/tanadol-moungmontree-7020b0274",
+  linkedin: "https://linkedin.com/in/tanadol-moungmontree-7020b0274",
 };
 
 const skills = {
@@ -46,30 +46,36 @@ const experience = [
   },
 ];
 
-const projects = [
+const projects: Project[] = [
   {
     name: "IoT Management Web Application",
     stack: ["Angular", "Typescript", "NestJS", "Node.js" ,"MongoDB"],
     desc: "Designed and implemented a user-friendly interface for managing IoT devices, enabling real-time monitoring and control.",
   },
   {
-    name: "IoT Admin Panel",
-    stack: ["Vue 3", "Quasar", "MQTT"],
+    name: "Team Worklogs Web Application",
+    stack: ["Vue 3", "Node.js", "Typescript"],
     desc: "Real‑time device ops console with granular RBAC and live telemetry.",
   },
   {
-    name: "Log Analytics Library",
-    stack: ["Node.js", "NestJS"],
+    name: "Auto Logs Library",
+    stack: ["NestJS"],
     desc: "Decorators + interceptors for low‑friction app logging and tracing.",
+  },
+  {
+    name: "Mobile Application for a Mobile Network Operator",
+    stack: ["Flutter"],
+    desc: "Developed a mobile application for a telecommunications company, enhancing user experience and providing seamless access to services.",
   },
 ];
 
 const education = [
-  { degree: "B.Sc. in Computer Science", org: "Your University", years: "2015 – 2019" },
+  { degree: "Bachelor of Engineering in Computer Engineering", org: "Khonkaen University", years: "2019-2022" },
 ];
 
 const certs = [
-  { name: "AWS Certified Cloud Practitioner", year: "YYYY" },
+  { name: "Mastering TypeScript: Advanced Concepts and Solutions", year: "2025" },
+  { name: "OOP The Right Way", year: "2025" },
 ];
 
 const HeaderBar: React.FC<{ profile: Profile; activeId: string; onNavReady?: (el: HTMLElement | null) => void }>=({ profile, activeId, onNavReady })=> {
@@ -156,18 +162,7 @@ const App: React.FC = () => {
   useParticles(canvasRef);
 
   const [profile] = useState<Profile>(() => {
-    try {
-      const raw = localStorage.getItem("resume-profile");
-      if (!raw) return DEFAULT_PROFILE;
-      const parsed = JSON.parse(raw);
-      const merged = { ...DEFAULT_PROFILE, ...parsed } as Profile;
-      // normalize blank/undefined summary
-      const s = (merged.summary || "").trim();
-      merged.summary = s ? merged.summary : DEFAULT_PROFILE.summary;
-      return merged;
-    } catch {
       return DEFAULT_PROFILE;
-    }
   });
 
   const pageRef = useRef<HTMLDivElement | null>(null);
@@ -285,6 +280,21 @@ const App: React.FC = () => {
                     </div>
                     <div className="muted" data-lines>{p.desc}</div>
                     <div className="chips mt-2" data-stagger-group>{p.stack.map(s => <Chip key={s} label={s} />)}</div>
+                    {p.highlights && p.highlights.length > 0 && (
+                      <ul className="bullets bullets-compact">
+                        {p.highlights.map((h, i) => {
+                          const idx = h.indexOf(":");
+                          if (idx > 0) {
+                            const head = h.slice(0, idx + 1);
+                            const tail = h.slice(idx + 1);
+                            return (
+                              <li key={i}><strong>{head}</strong>{tail}</li>
+                            );
+                          }
+                          return <li key={i}>{h}</li>;
+                        })}
+                      </ul>
+                    )}
                   </div>
                 ))}
               </div>
