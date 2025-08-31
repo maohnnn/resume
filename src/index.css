@@ -89,3 +89,6 @@ body{
 .cta:hover{ border-color: rgba(127,255,212,0.45); box-shadow: 0 0 0 3px rgba(127,255,212,0.12) inset; }
 
 .footer{ color:var(--muted); text-align:center; font-size:13px; margin:16px 0 6px; }
+
+.reveal{ opacity:0; will-change: opacity, transform; transform: translateZ(0); }
+@media (prefers-reduced-motion: reduce){ .reveal{ opacity:1 !important; transform:none !important; } }

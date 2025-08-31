@@ -1,5 +1,6 @@
 import React, { useRef, useState } from "react";
 import useParticles from "./hooks/useParticles";
+import useAnimeReveal from "./hooks/useAnimeReveal";
 import type { Profile } from "./types";
 
 const DEFAULT_PROFILE: Profile = {
@@ -68,36 +69,25 @@ const certs = [
   { name: "AWS Certified Cloud Practitioner", year: "YYYY" },
 ];
 
-const Chip: React.FC<{ label: string }> = ({ label }) => (
-  <span className="chip">{label}</span>
-);
-
-const Section: React.FC<{ title: string; children: React.ReactNode; id?: string }>=({ title, children, id })=> (
-  <section className="glass section" id={id}>
-    <h2 className="section-title">{title}</h2>
-    {children}
-  </section>
-);
-
 const HeaderBar: React.FC<{ profile: Profile }>=({ profile })=> (
-  <header className="header glass">
+  <header className="header glass reveal" data-anim="down">
     <div className="header-main">
-      <div className="title">{profile.name}</div>
-      <div className="subtitle">{profile.title} · {profile.location}</div>
+      <div className="title reveal" data-anim="right">{profile.name}</div>
+      <div className="subtitle reveal" data-anim="right">{profile.title} · {profile.location}</div>
     </div>
-    <nav className="header-nav">
-      <a href="#summary">Summary</a>
-      <a href="#skills">Skills</a>
-      <a href="#experience">Experience</a>
-      <a href="#projects">Projects</a>
-      <a href="#education">Education</a>
-      <a href="#contact">Contact</a>
+    <nav className="header-nav" data-stagger-group>
+      <a className="reveal" data-anim="down" href="#summary">Summary</a>
+      <a className="reveal" data-anim="down" href="#skills">Skills</a>
+      <a className="reveal" data-anim="down" href="#experience">Experience</a>
+      <a className="reveal" data-anim="down" href="#projects">Projects</a>
+      <a className="reveal" data-anim="down" href="#education">Education</a>
+      <a className="reveal" data-anim="down" href="#contact">Contact</a>
     </nav>
   </header>
 );
 
 const Sidebar: React.FC<{ profile: Profile }>=({ profile })=> (
-  <aside className="sidebar glass">
+  <aside className="sidebar glass reveal" data-anim="up">
     <div className="sidebar-block">
       <div className="block-title">Contact</div>
       <div className="kv"><span>Phone</span><a href={`tel:${profile.phone}`}>{profile.phone}</a></div>
@@ -108,11 +98,22 @@ const Sidebar: React.FC<{ profile: Profile }>=({ profile })=> (
     </div>
     <div className="sidebar-block">
       <div className="block-title">Core</div>
-      <div className="chips">
+      <div className="chips" data-stagger-group>
         {skills.frontend.slice(0,4).map(s => <Chip key={s} label={s} />)}
       </div>
     </div>
   </aside>
+);
+
+const Chip: React.FC<{ label: string }> = ({ label }) => (
+  <span className="chip reveal" data-anim="up">{label}</span>
+);
+
+const Section: React.FC<{ title: string; children: React.ReactNode; id?: string }>=({ title, children, id })=> (
+  <section className="glass section reveal" data-anim="up" id={id}>
+    <h2 className="section-title">{title}</h2>
+    {children}
+  </section>
 );
 
 const App: React.FC = () => {
@@ -130,8 +131,11 @@ const App: React.FC = () => {
     }
   });
 
+  const pageRef = useRef<HTMLDivElement | null>(null);
+  useAnimeReveal(pageRef.current || undefined);
+
   return (
-    <div className="page">
+    <div className="page" ref={pageRef}>
       <canvas ref={canvasRef} className="bg-canvas" />
       <div className="content">
         <HeaderBar profile={profile} />
@@ -139,32 +143,32 @@ const App: React.FC = () => {
         <div className="layout">
           <Sidebar profile={profile} />
 
-          <main className="main">
+          <main className="main" data-stagger-group>
             <Section title="Summary" id="summary">
-              <p className="muted">{profile.summary}</p>
+              <p className="muted reveal" data-anim="up">{profile.summary}</p>
             </Section>
 
             <Section title="Skills" id="skills">
-              <div className="skills-grid">
-                <div className="soft-card">
+              <div className="skills-grid" data-stagger-group>
+                <div className="soft-card reveal" data-anim="up">
                   <div className="block-title">Frontend</div>
-                  <div className="chips">{skills.frontend.map(s => <Chip key={s} label={s} />)}</div>
+                  <div className="chips" data-stagger-group>{skills.frontend.map(s => <Chip key={s} label={s} />)}</div>
                 </div>
-                <div className="soft-card">
+                <div className="soft-card reveal" data-anim="up">
                   <div className="block-title">Backend</div>
-                  <div className="chips">{skills.backend.map(s => <Chip key={s} label={s} />)}</div>
+                  <div className="chips" data-stagger-group>{skills.backend.map(s => <Chip key={s} label={s} />)}</div>
                 </div>
-                <div className="soft-card">
+                <div className="soft-card reveal" data-anim="up">
                   <div className="block-title">DevOps</div>
-                  <div className="chips">{skills.devops.map(s => <Chip key={s} label={s} />)}</div>
+                  <div className="chips" data-stagger-group>{skills.devops.map(s => <Chip key={s} label={s} />)}</div>
                 </div>
               </div>
             </Section>
 
             <Section title="Experience" id="experience">
-              <div className="stacked">
+              <div className="stacked" data-stagger-group>
                 {experience.map((e) => (
-                  <div className="soft-card" key={e.role + e.company}>
+                  <div className="soft-card reveal" data-anim="up" key={e.role + e.company}>
                     <div className="row">
                       <div className="role">{e.role}</div>
                       <div className="period">{e.period}</div>
@@ -179,23 +183,23 @@ const App: React.FC = () => {
             </Section>
 
             <Section title="Projects" id="projects">
-              <div className="cards">
+              <div className="cards" data-stagger-group>
                 {projects.map((p) => (
-                  <div className="soft-card" key={p.name}>
+                  <div className="soft-card reveal" data-anim="up" key={p.name}>
                     <div className="row">
                       <div className="role">{p.name}</div>
                     </div>
                     <div className="muted">{p.desc}</div>
-                    <div className="chips mt-2">{p.stack.map(s => <Chip key={s} label={s} />)}</div>
+                    <div className="chips mt-2" data-stagger-group>{p.stack.map(s => <Chip key={s} label={s} />)}</div>
                   </div>
                 ))}
               </div>
             </Section>
 
             <Section title="Education" id="education">
-              <div className="stacked">
+              <div className="stacked" data-stagger-group>
                 {education.map((ed) => (
-                  <div className="soft-card" key={ed.degree+ed.org}>
+                  <div className="soft-card reveal" data-anim="up" key={ed.degree+ed.org}>
                     <div className="row">
                       <div className="role">{ed.degree}</div>
                       <div className="period">{ed.years}</div>
@@ -207,9 +211,9 @@ const App: React.FC = () => {
             </Section>
 
             <Section title="Certifications">
-              <div className="stacked">
+              <div className="stacked" data-stagger-group>
                 {certs.map((c) => (
-                  <div className="soft-card" key={c.name}>
+                  <div className="soft-card reveal" data-anim="up" key={c.name}>
                     <div className="row">
                       <div className="role">{c.name}</div>
                       <div className="period">{c.year}</div>
@@ -220,17 +224,17 @@ const App: React.FC = () => {
             </Section>
 
             <Section title="Contact" id="contact">
-              <div className="contact">
-                <a href={`mailto:${profile.email}`} className="cta">Email Me</a>
-                {profile.website && <a href={profile.website} className="cta" target="_blank" rel="noreferrer noopener">Website</a>}
-                {profile.github && <a href={profile.github} className="cta" target="_blank" rel="noreferrer noopener">GitHub</a>}
-                {profile.linkedin && <a href={profile.linkedin} className="cta" target="_blank" rel="noreferrer noopener">LinkedIn</a>}
+              <div className="contact" data-stagger-group>
+                <a href={`mailto:${profile.email}`} className="cta reveal" data-anim="up">Email Me</a>
+                {profile.website && <a href={profile.website} className="cta reveal" data-anim="up" target="_blank" rel="noreferrer noopener">Website</a>}
+                {profile.github && <a href={profile.github} className="cta reveal" data-anim="up" target="_blank" rel="noreferrer noopener">GitHub</a>}
+                {profile.linkedin && <a href={profile.linkedin} className="cta reveal" data-anim="up" target="_blank" rel="noreferrer noopener">LinkedIn</a>}
               </div>
             </Section>
           </main>
         </div>
 
-        <footer className="footer">© {new Date().getFullYear()} {profile.name} · Built with React + Vite</footer>
+        <footer className="footer reveal" data-anim="up">© {new Date().getFullYear()} {profile.name} · Built with React + Vite</footer>
       </div>
     </div>
   );
