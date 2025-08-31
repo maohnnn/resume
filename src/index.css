@@ -8,7 +8,7 @@
   --muted:#9fb0c2;
   --accent:#7fffd4;
   --accent-2:#7cc8ff;
-  --border: rgba(255,255,255,0.06);
+  --border: rgba(255,255,255,0.12);
 }
 
 html, body, #root { height: 100%; }
@@ -26,14 +26,19 @@ body{
 .page{ position: relative; min-height:100vh; }
 .bg-canvas{ position: fixed; inset:0; z-index:0; display:block; }
 .content{ position: relative; z-index: 1; max-width: 1100px; margin:0 auto; padding:24px; }
+@media (max-width: 920px){ .content{ padding:16px; } }
+@media (min-width: 1280px){ .content{ padding:32px; } }
 
 .glass{
-  background: linear-gradient(180deg, rgba(18,22,28,0.85), rgba(12,14,18,0.85));
+  background: linear-gradient(180deg, rgba(18,22,28,0.92), rgba(12,14,18,0.9));
   border: 1px solid var(--border);
   border-radius: 14px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.03);
+  box-shadow: 0 12px 34px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04);
   backdrop-filter: blur(10px);
 }
+
+.section{ padding:16px; }
+@media (min-width: 768px){ .section{ padding:18px 20px; } }
 
 .header{
   display:flex; align-items:center; justify-content:space-between;
@@ -42,34 +47,36 @@ body{
 .header .title{ font-size:24px; font-weight:700; letter-spacing:0.3px; }
 .header .subtitle{ color:var(--muted); font-size:14px; }
 .header-nav{ display:flex; gap:14px; }
-.header-nav a{ color:var(--muted); text-decoration:none; font-size:14px; padding:6px 8px; border-radius:8px; }
+.header-nav a{ color:var(--muted); text-decoration:none; font-size:14px; padding:6px 10px; border-radius:8px; }
 .header-nav a:hover{ color:var(--text); background: rgba(255,255,255,0.04); }
 
 .layout{ display:grid; grid-template-columns: 280px 1fr; gap:16px; }
 @media (max-width: 920px){ .layout{ grid-template-columns: 1fr; } }
 
-.sidebar{ padding:14px; height: fit-content; position: sticky; top:16px; }
+.sidebar{ padding:16px; height: fit-content; position: sticky; top:16px; }
 .sidebar-block + .sidebar-block{ margin-top:14px; }
 .block-title{ font-weight:700; font-size:13px; letter-spacing:0.08em; color:var(--accent); text-transform:uppercase; margin-bottom:8px; }
 .kv{ display:flex; justify-content:space-between; gap:10px; font-size:14px; color:var(--muted); }
 .kv a{ color:var(--text); text-decoration:none; }
 .kv a:hover{ text-decoration:underline; color:var(--accent-2); }
-.chips{ display:flex; flex-wrap:wrap; gap:8px; }
+.chips{ display:flex; flex-wrap:wrap; gap:10px; }
 
-.main{ display:flex; flex-direction:column; gap:16px; }
+.main{ display:flex; flex-direction:column; gap:18px; }
 .section-title{ font-size:16px; font-weight:800; letter-spacing:0.06em; text-transform:uppercase; color:var(--text); margin:0 0 10px; }
 .section-title::after{ content:""; display:block; width:48px; height:2px; background:linear-gradient(90deg, var(--accent), transparent); margin-top:6px; }
 
-.soft-card{ background: linear-gradient(180deg, rgba(19,23,29,0.9), rgba(12,15,19,0.9)); border:1px solid var(--border); border-radius:12px; padding:14px; }
+.soft-card{ background: linear-gradient(180deg, rgba(19,23,29,0.94), rgba(12,15,19,0.9)); border:1px solid var(--border); border-radius:12px; padding:16px; }
 .row{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
 .role{ font-weight:600; }
 .period{ color:var(--muted); font-size:13px; }
 .company{ color:var(--muted); font-size:14px; margin-top:2px; }
 .bullets{ margin:8px 0 0 16px; padding:0; }
 .bullets li{ margin:6px 0; }
-.cards{ display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:12px; }
+.cards{ display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:14px; }
 @media (max-width: 920px){ .cards{ grid-template-columns: 1fr; } }
 .stacked{ display:flex; flex-direction:column; gap:12px; }
+.skills-grid{ display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:14px; }
+@media (max-width: 920px){ .skills-grid{ grid-template-columns: 1fr; } }
 
 .chip{ display:inline-flex; align-items:center; gap:6px; border:1px solid var(--border); background: #0e1319; color:var(--text); padding:6px 10px; border-radius:999px; font-size:13px; }
 .chip::before{ content:""; width:6px; height:6px; border-radius:999px; background: var(--accent); box-shadow: 0 0 12px rgba(127,255,212,0.6); }

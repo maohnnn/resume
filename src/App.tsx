@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import useParticles from "./hooks/useParticles";
 import type { Profile } from "./types";
 
@@ -73,7 +73,7 @@ const Chip: React.FC<{ label: string }> = ({ label }) => (
 );
 
 const Section: React.FC<{ title: string; children: React.ReactNode; id?: string }>=({ title, children, id })=> (
-  <section className="glass" id={id}>
+  <section className="glass section" id={id}>
     <h2 className="section-title">{title}</h2>
     {children}
   </section>
