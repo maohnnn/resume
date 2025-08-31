@@ -174,7 +174,7 @@ const App: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   useParticles(canvasRef);
 
-  const [profile, setProfile] = useState<Profile>(() => {
+  const [profile] = useState<Profile>(() => {
     try {
       const raw = localStorage.getItem("resume-profile");
       if (!raw) return DEFAULT_PROFILE;
